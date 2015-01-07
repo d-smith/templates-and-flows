@@ -3,6 +3,11 @@ package dsl
 import scala.util.parsing.combinator.{RegexParsers, JavaTokenParsers}
 
 class ObjectParser extends JavaTokenParsers {
+
+  def namedObj: Parser[(String, Map[String, Any])] =
+    ident~":"~obj ^^
+      { case objName~":"~obj => (objName, obj)}
+
   def obj: Parser[Map[String, Any]] =
     "{"~> repsep(member, ",") <~"}" ^^ (Map() ++ _)
 
@@ -14,7 +19,8 @@ class ObjectParser extends JavaTokenParsers {
       { case name~":"~value => (name, value) }
 
   def value: Parser[Any] = (
-    obj
+    namedObj
+      | obj
       | arr
       | stringLiteral
       | floatingPointNumber ^^ (_.toDouble)
