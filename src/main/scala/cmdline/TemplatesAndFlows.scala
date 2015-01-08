@@ -1,10 +1,13 @@
 package cmdline
 
+import scala.annotation.tailrec
+
 case class Case(objects: Map[String, Map[String,Any]] = Map(), id: Long = System.currentTimeMillis())
 
-case class SessionState(cases: List[Case], currentCaseIdx: Int)
+case class SessionState(objects: Map[String, Map[String,Any]], cases: List[Case], currentCaseIdx: Int)
 
 object TemplatesAndFlows extends App {
+  import CmdLineUtils._
 
   def banner =
     """
@@ -15,27 +18,44 @@ object TemplatesAndFlows extends App {
       ||_|    |_|\___/ \_/\_/  \_____\___/|_| |_|
     """.stripMargin
 
+  val actionMenu = List(
+    ("Create a case", CreateCase),
+    ("List cases", ListCases),
+    ("Quit", Quit)
+  ).zipWithIndex
+
+
+
   def issueMainPrompt() : Unit = {
-    println("Do you want to [c]reate a case, [d]isplay current case objects,")
-    println("[s]elect a case, [l]ist cases, [a]dd an object, [r]emove an object, or")
-    println("[i]nstantiate a workflow, or [quit]?")
+    println("Choose an action: ")
+    actionMenu map {
+      case ((s,_), i) => println(s"$i $s")
+    }
   }
 
+  def handleCmd(n: Int, ss: SessionState) : SessionState = {
+    import ActionHandlers._
+    val selection = actionMenu(n)
+    val action = selection._1._2
+    sessionLoop(allHandlers.apply(ss, action))
+  }
+
+  @tailrec
   def sessionLoop(ss: SessionState) : SessionState = {
     import ActionHandlers._
     issueMainPrompt()
-    readLine() match {
-      case "c" => sessionLoop(allHandlers.apply(ss,CreateCase))
-      case "l" => sessionLoop(allHandlers.apply(ss, ListCases))
-      case "q" => sessionLoop(allHandlers.apply(ss, Quit))
-      case _ => sessionLoop(ss)
-    }
 
+    readLine().trim().toIntOpt match {
+      case Some(n) if n >= 0 && n <= actionMenu.length => handleCmd(n,ss)
+      case None =>
+        println("Select one of the numbers given in the prompt, ok?")
+        sessionLoop(ss)
+    }
   }
 
   println(banner)
 
-  val sessionState = new SessionState(List(), -1)
+  val sessionState = new SessionState(Map(), List(), -1)
   sessionLoop(sessionState)
 
 }

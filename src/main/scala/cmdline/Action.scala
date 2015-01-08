@@ -13,13 +13,13 @@ object ActionHandlers {
   }
 
   val CreateCaseActionHandler: PartialFunction[(SessionState, Action), SessionState] = {
-    case (gameState@SessionState(cases,caseIdx), CreateCase) =>
+    case (gameState@SessionState(_,cases,caseIdx), CreateCase) =>
       val updatedCases = cases :+ new Case()
-      gameState.copy(updatedCases, updatedCases.length - 1)
+      gameState.copy(cases = updatedCases, currentCaseIdx = updatedCases.length - 1)
   }
 
   var DisplayCasesActionHandler: PartialFunction[(SessionState, Action), SessionState] = {
-    case (gameState@SessionState(cases,caseIdx), ListCases) =>
+    case (gameState@SessionState(_, cases,caseIdx), ListCases) =>
       println(s"current case idx is $caseIdx")
       println(s"cases: $cases")
       gameState
