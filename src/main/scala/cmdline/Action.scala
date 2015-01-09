@@ -4,6 +4,27 @@ sealed trait Action
 case object Quit extends Action
 case object CreateCase extends Action
 case object ListCases extends Action
+case object ListObjects extends Action
+
+case object CreateObject extends Action {
+  import CmdLineUtils.readLineGroup
+
+  val parser = new dsl.ObjectParser
+
+
+  def getObject() : Option[(String, Map[String,Any])] = {
+    Console.println("Enter an object (terminate entry with empty line):")
+    val rawObj = readLineGroup()
+    val parseResult = parser.parseAll(parser.namedObj, rawObj)
+    parseResult.successful match {
+      case true => Some(parseResult.get)
+      case false =>
+        println(s"\n${parseResult.toString}")
+        None
+    }
+
+  }
+}
 
 object ActionHandlers {
   val QuitActionHandler: PartialFunction[(SessionState, Action),SessionState] = {
@@ -25,7 +46,23 @@ object ActionHandlers {
       gameState
   }
 
-  val handlers = (QuitActionHandler :: CreateCaseActionHandler :: DisplayCasesActionHandler :: Nil)
+  var ListObjectsActionHandler: PartialFunction[(SessionState, Action), SessionState] = {
+    case (gameState@SessionState(objs,_,_), ListObjects) =>
+      println(s"Objects: $objs")
+      gameState
+  }
+
+  var CreateObjectActionHandler: PartialFunction[(SessionState, Action), SessionState] = {
+    case (gameState@SessionState(objCollection,_,_),CreateObject) =>
+      CreateObject.getObject() match {
+        case Some(r) =>
+          gameState.copy(objects = objCollection + (r._1 -> r._2))
+        case None => gameState
+      }
+  }
+
+  val handlers = (QuitActionHandler :: CreateCaseActionHandler ::
+                    ListObjectsActionHandler :: DisplayCasesActionHandler :: CreateObjectActionHandler ::Nil)
 
   val allHandlers = handlers.reduceLeft(_ orElse _)
 }

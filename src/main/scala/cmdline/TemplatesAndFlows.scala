@@ -21,6 +21,8 @@ object TemplatesAndFlows extends App {
   val actionMenu = List(
     ("Create a case", CreateCase),
     ("List cases", ListCases),
+    ("Create an object", CreateObject),
+    ("List objects", ListObjects),
     ("Quit", Quit)
   ).zipWithIndex
 
