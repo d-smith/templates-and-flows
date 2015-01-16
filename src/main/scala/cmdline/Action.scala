@@ -1,5 +1,7 @@
 package cmdline
 
+import domain.{Case, SessionState, ProtoObject}
+
 sealed trait Action
 case object Quit extends Action
 case object CreateCase extends Action
@@ -12,12 +14,12 @@ case object CreateObject extends Action {
   val parser = new dsl.ObjectParser
 
 
-  def getObject() : Option[(String, Map[String,Any])] = {
+  def getObject() : Option[ProtoObject] = {
     Console.println("Enter an object (terminate entry with empty line):")
     val rawObj = readLineGroup()
     val parseResult = parser.parseAll(parser.namedObj, rawObj)
     parseResult.successful match {
-      case true => Some(parseResult.get)
+      case true => Some(ProtoObject(parseResult.get))
       case false =>
         println(s"\n${parseResult.toString}")
         None
@@ -56,7 +58,7 @@ object ActionHandlers {
     case (gameState@SessionState(objCollection,_,_),CreateObject) =>
       CreateObject.getObject() match {
         case Some(r) =>
-          gameState.copy(objects = objCollection + (r._1 -> r._2))
+          gameState.copy(objects = objCollection + (r.name -> r.fieldMap))
         case None => gameState
       }
   }
