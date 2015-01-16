@@ -7,6 +7,8 @@ case object Quit extends Action
 case object CreateCase extends Action
 case object ListCases extends Action
 case object ListObjects extends Action
+case object SelectCase extends Action
+case object ShowCurrentCase extends Action
 
 case object CreateObject extends Action {
   import CmdLineUtils.readLineGroup
@@ -37,8 +39,32 @@ object ActionHandlers {
 
   val CreateCaseActionHandler: PartialFunction[(SessionState, Action), SessionState] = {
     case (gameState@SessionState(_,cases,caseIdx), CreateCase) =>
-      val updatedCases = cases :+ new Case()
+      println("Enter case name: ")
+      val caseName = Console.readLine
+      val updatedCases = cases :+ new Case(caseName)
       gameState.copy(cases = updatedCases, currentCaseIdx = updatedCases.length - 1)
+  }
+
+  val SelectCaseActionHandler: PartialFunction[(SessionState, Action), SessionState] = {
+    case (gameState@SessionState(_,cases,caseIdx), SelectCase) =>
+      Console.println("Enter case name: ")
+      val caseName = Console.readLine()
+      cases.zipWithIndex.filter(_._1.caseName == caseName) match {
+        case h :: Nil => gameState.copy(currentCaseIdx = h._2)
+        case _ =>
+          Console.println(s"Single case named $caseName not found")
+          gameState
+      }
+  }
+
+  val ShowCurrentCaseActionHandler: PartialFunction[(SessionState, Action), SessionState] = {
+    case (gameState@SessionState(_,cases, currentCaseIdx), ShowCurrentCase) =>
+      cases match {
+        case Nil => Console.println("No cases yet")
+        case _ =>  Console.println(cases(currentCaseIdx))
+      }
+
+      gameState
   }
 
   var DisplayCasesActionHandler: PartialFunction[(SessionState, Action), SessionState] = {
@@ -63,7 +89,7 @@ object ActionHandlers {
       }
   }
 
-  val handlers = (QuitActionHandler :: CreateCaseActionHandler ::
+  val handlers = (QuitActionHandler :: CreateCaseActionHandler :: ShowCurrentCaseActionHandler :: SelectCaseActionHandler ::
                     ListObjectsActionHandler :: DisplayCasesActionHandler :: CreateObjectActionHandler ::Nil)
 
   val allHandlers = handlers.reduceLeft(_ orElse _)

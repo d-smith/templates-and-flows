@@ -19,7 +19,9 @@ object TemplatesAndFlows extends App {
 
   val actionMenu = List(
     ("Create a case", CreateCase),
+    ("Show current case", ShowCurrentCase),
     ("List cases", ListCases),
+    ("Select case", SelectCase),
     ("Create an object", CreateObject),
     ("List objects", ListObjects),
     ("Quit", Quit)
