@@ -31,13 +31,15 @@ case object CreateObject extends Action {
 }
 
 object ActionHandlers {
-  val QuitActionHandler: PartialFunction[(SessionState, Action),SessionState] = {
+  type StateTransitionFunction = PartialFunction[(SessionState, Action),SessionState]
+
+  val QuitActionHandler: StateTransitionFunction = {
     case (gameState, Quit) =>
       System.exit(0)
       gameState //For the compiler
   }
 
-  val CreateCaseActionHandler: PartialFunction[(SessionState, Action), SessionState] = {
+  val CreateCaseActionHandler: StateTransitionFunction = {
     case (gameState@SessionState(_,cases,caseIdx), CreateCase) =>
       println("Enter case name: ")
       val caseName = Console.readLine
@@ -45,7 +47,7 @@ object ActionHandlers {
       gameState.copy(cases = updatedCases, currentCaseIdx = updatedCases.length - 1)
   }
 
-  val SelectCaseActionHandler: PartialFunction[(SessionState, Action), SessionState] = {
+  val SelectCaseActionHandler: StateTransitionFunction = {
     case (gameState@SessionState(_,cases,caseIdx), SelectCase) =>
       Console.println("Enter case name: ")
       val caseName = Console.readLine()
@@ -57,7 +59,7 @@ object ActionHandlers {
       }
   }
 
-  val ShowCurrentCaseActionHandler: PartialFunction[(SessionState, Action), SessionState] = {
+  val ShowCurrentCaseActionHandler: StateTransitionFunction = {
     case (gameState@SessionState(_,cases, currentCaseIdx), ShowCurrentCase) =>
       cases match {
         case Nil => Console.println("No cases yet")
@@ -67,20 +69,20 @@ object ActionHandlers {
       gameState
   }
 
-  var DisplayCasesActionHandler: PartialFunction[(SessionState, Action), SessionState] = {
+  var DisplayCasesActionHandler: StateTransitionFunction = {
     case (gameState@SessionState(_, cases,caseIdx), ListCases) =>
       println(s"current case idx is $caseIdx")
       println(s"cases: $cases")
       gameState
   }
 
-  var ListObjectsActionHandler: PartialFunction[(SessionState, Action), SessionState] = {
+  var ListObjectsActionHandler: StateTransitionFunction = {
     case (gameState@SessionState(objs,_,_), ListObjects) =>
       println(objs.foreach(println))
       gameState
   }
 
-  var CreateObjectActionHandler: PartialFunction[(SessionState, Action), SessionState] = {
+  var CreateObjectActionHandler: StateTransitionFunction = {
     case (gameState@SessionState(objCollection,_,_),CreateObject) =>
       CreateObject.getObject() match {
         case Some(r) =>
