@@ -56,7 +56,7 @@ object TemplatesAndFlows extends App {
 
   println(banner)
 
-  val sessionState = new SessionState(Map(), List(), -1)
+  val sessionState = new SessionState(List(), List(), -1)
   sessionLoop(sessionState)
 
 }

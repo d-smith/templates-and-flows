@@ -50,7 +50,7 @@ object ActionHandlers {
 
   var ListObjectsActionHandler: PartialFunction[(SessionState, Action), SessionState] = {
     case (gameState@SessionState(objs,_,_), ListObjects) =>
-      println(s"Objects: $objs")
+      println(objs.foreach(println))
       gameState
   }
 
@@ -58,7 +58,7 @@ object ActionHandlers {
     case (gameState@SessionState(objCollection,_,_),CreateObject) =>
       CreateObject.getObject() match {
         case Some(r) =>
-          gameState.copy(objects = objCollection + (r.name -> r.fieldMap))
+          gameState.copy(objects = r :: objCollection)
         case None => gameState
       }
   }
